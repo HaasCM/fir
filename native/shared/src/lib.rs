@@ -36,6 +36,7 @@ pub fn extract_stockpile(
     ocr: &Ocr,
     icon_classifier: &mut Classifier,
     quantity_classifier: &mut Classifier,
+    catalog: &serde_json::Value,
 ) -> Result<Option<Stockpile>, Box<dyn std::error::Error>> {
     let mut stockpile = match slicer::slice_stockpile(rgba, width) {
         Some(s) => s,

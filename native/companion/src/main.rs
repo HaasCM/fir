@@ -32,6 +32,8 @@ static ICON_CLASS_NAMES_JSON: &str =
     include_str!(fir_path!(foxhole / "classifier/class_names.json"));
 static QUANTITY_CLASS_NAMES_JSON: &str =
     include_str!(fir_path!(includes / "quantities/class_names.json"));
+static CATALOG_JSON: &str =
+    include_str!(fir_path!(foxhole / "catalog.json"));
 
 // Helper: read bytes from a filename, where "-" means stdin.
 fn read_input_bytes(filename: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
@@ -67,6 +69,7 @@ fn command_extract(filenames: Vec<String>) -> Result<(), Box<dyn std::error::Err
         return Err("No files provided to extract.".into());
     }
 
+    let catalog = serde_json::from_str(CATALOG_JSON)?;
     let (ocr, mut icon_classifier, mut quantity_classifier) = get_classifiers()?;
 
     let mut outputs: Vec<Option<_>> = Vec::with_capacity(filenames.len());
@@ -82,6 +85,7 @@ fn command_extract(filenames: Vec<String>) -> Result<(), Box<dyn std::error::Err
             &ocr,
             &mut icon_classifier,
             &mut quantity_classifier,
+            &catalog
         )?;
         outputs.push(stockpile);
     }
@@ -97,6 +101,7 @@ fn command_http_server(args: Vec<String>) -> Result<(), Box<dyn std::error::Erro
     let server = Server::http(addr).map_err(|_| "Failed to start server.")?;
     eprintln!("Listening on http://{}", server.server_addr().to_string());
 
+    let catalog = serde_json::from_str(CATALOG_JSON)?;
     let (ocr, mut icon_classifier, mut quantity_classifier) = get_classifiers()?;
     let content_type_header = Header::from_bytes("Content-Type", "application/json").unwrap();
 
@@ -126,6 +131,7 @@ fn command_http_server(args: Vec<String>) -> Result<(), Box<dyn std::error::Erro
                 &ocr,
                 &mut icon_classifier,
                 &mut quantity_classifier,
+                &catalog
             )?;
             Ok(serde_json::to_string_pretty(&stockpile)?)
         })();

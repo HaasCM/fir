@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::env;
 use std::error::Error;
 use std::fs;
+use std::fs::File;
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -233,6 +234,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         fir_path.join(format!("foxhole/{version}/classifier/class_names.json")),
     )?;
 
+    let catalog = serde_json::from_reader(
+        File::open(fir_path.join(format!("foxhole/{version}/catalog.json")))?
+    )?;
+
     let mut quantity_classifier = Classifier::new_from_paths(
         fir_path.join("includes/quantities/model.onnx"),
         (16, 21),
@@ -263,6 +268,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             &ocr,
             &mut icon_classifier,
             &mut quantity_classifier,
+            &catalog
         )?;
 
         let stockpile = match stockpile {
